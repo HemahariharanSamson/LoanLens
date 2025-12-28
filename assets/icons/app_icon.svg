@@ -1,0 +1,32 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B9BD2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4DB6AC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lensGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#64B5F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#81C784;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded Square Background -->
+  <rect width="1024" height="1024" rx="200" fill="url(#bgGradient)"/>
+  
+  <!-- Magnifying Glass (Lens) - Outer Circle -->
+  <circle cx="512" cy="450" r="180" fill="none" stroke="white" stroke-width="45" opacity="0.9"/>
+  
+  <!-- Magnifying Glass Handle -->
+  <line x1="640" y1="580" x2="750" y2="690" stroke="white" stroke-width="50" stroke-linecap="round" opacity="0.9"/>
+  
+  <!-- Currency Symbol (₹) inside lens -->
+  <text x="512" y="500" font-family="Arial, sans-serif" font-size="280" font-weight="bold" fill="white" text-anchor="middle" opacity="0.95">₹</text>
+  
+  <!-- Trend Line (subtle) at bottom -->
+  <path d="M 200 850 Q 350 750, 500 800 T 800 750" fill="none" stroke="white" stroke-width="35" stroke-linecap="round" opacity="0.7"/>
+  
+  <!-- Small upward arrow on trend line -->
+  <path d="M 750 750 L 800 700 L 850 750" fill="none" stroke="white" stroke-width="35" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+</svg>
+

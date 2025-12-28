@@ -2,7 +2,7 @@
 
 A fully offline-first Flutter mobile application for tracking and analyzing multiple loans.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/license-Private-red)
@@ -90,8 +90,8 @@ See `pubspec.yaml` for complete list.
 
 ## 📱 Platform Support
 
-- ✅ Android (Primary)
-- ✅ iOS (Compatible)
+- ✅ **Android** (Primary - Fully tested with adaptive icons)
+- ✅ **iOS** (Compatible)
 
 ## 🛠️ Development
 
@@ -120,7 +120,12 @@ flutter build apk --release
 
 ## 📝 Version History
 
-### v1.0.0 (Current)
+### v2.0.0 (Current)
+- ✨ **New Icon Design** - Modern, minimalist app icon
+- 🎨 Enhanced visual identity
+- All v1.0.0 features maintained
+
+### v1.0.0
 - Initial release
 - Loan management (CRUD)
 - Past payments support
@@ -139,7 +144,14 @@ Private - Personal use only
 
 ## 👤 Author
 
-Your Name
+**Hema Hariharan Samson**
+
+- Portfolio: [https://hhh-dev.vercel.app/](https://hhh-dev.vercel.app/)
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+*Built with passion for helping people manage their finances better.*
 
 ## 🙏 Acknowledgments
 
