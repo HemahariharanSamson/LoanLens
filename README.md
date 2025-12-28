@@ -2,7 +2,7 @@
 
 A fully offline-first Flutter mobile application for tracking and analyzing multiple loans.
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.1.0-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/license-Private-red)
@@ -10,6 +10,7 @@ A fully offline-first Flutter mobile application for tracking and analyzing mult
 ## 🌟 Features
 
 - ✅ **100% Offline** - No internet required, all data stored locally
+- 👤 **Personalization** - Customize your experience with personalized greetings
 - 📊 **Loan Management** - Add, edit, delete multiple loans
 - 📈 **Analytics Dashboard** - Visual charts and trends
 - 💰 **Past Payments Support** - Track existing loans with payment history
@@ -121,7 +122,15 @@ flutter build apk --release
 
 ## 📝 Version History
 
-### v3.0.0 (Current)
+### v3.1.0 (Current)
+- 👤 **Personalization Feature** - Set and update your name for personalized greetings
+- 🎯 **Smart Onboarding** - Optional name collection on first launch
+- 🔄 **Mid-Session Updates** - Update your name anytime via profile icon or greeting
+- 💾 **Local Profile Storage** - User profile stored securely offline using Hive
+- ✨ **Enhanced UX** - Clickable greeting and profile icon for easy access
+- All previous features maintained
+
+### v3.0.0
 - ⚡ **Performance Optimizations** - Faster app startup and navigation
 - 🚀 **Splash Screen Fix** - No more hanging on splash screen
 - ⏱️ **Faster Loan Details** - Optimized loading with progressive rendering
