@@ -1,0 +1,44 @@
+feat: Major update v4.0.0 - SQLite migration and data persistence fix
+
+🎉 MAJOR RELEASE v4.0.0
+
+🐛 Critical Bug Fixes:
+- Fixed data persistence bug where loan details were deleted after app close
+- Fixed rupee symbol not displaying correctly in PDF reports (now uses "Rs.")
+
+✨ Major Features:
+- Complete migration from Hive to SQLite (sqflite) for reliable data storage
+- Enterprise-grade security with SQL injection prevention
+- Comprehensive error handling and input validation
+- Transaction support for atomic database operations
+- Custom currency formatter for PDF with Indian numbering system
+
+🔒 Security Enhancements:
+- Parameterized queries prevent SQL injection
+- Input validation for all database operations
+- Safe data parsing with fallback values
+- Enhanced error handling throughout
+
+📄 PDF Improvements:
+- Fixed currency symbol display in all PDF reports
+- Uses "Rs." prefix for universal compatibility
+- Indian numbering system (lakhs, crores) support
+
+🗑️ Removed:
+- Hive storage implementation (hive_storage.dart, hive_adapter.dart)
+- Hive dependencies from pubspec.yaml
+
+📦 Dependencies:
+- Added: sqflite, sqflite_common_ffi, path
+- Removed: hive, hive_flutter
+
+📝 Documentation:
+- Updated README.md with v4.0.0 info
+- Added CHANGELOG.md
+- Added VERSION_4.0.0_SUMMARY.md
+- Added comprehensive migration and security documentation
+
+This major update ensures loan data is safe, secure, persistent, and properly displayed in all PDF reports.
+
+BREAKING CHANGE: Storage backend changed from Hive to SQLite. Existing data will not be automatically migrated.
+

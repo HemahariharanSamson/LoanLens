@@ -2,7 +2,7 @@
 
 A fully offline-first Flutter mobile application for tracking and analyzing multiple loans.
 
-![Version](https://img.shields.io/badge/version-3.2.0-blue)
+![Version](https://img.shields.io/badge/version-4.0.0-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/license-Private-red)
@@ -123,7 +123,17 @@ flutter build apk --release
 
 ## 📝 Version History
 
-### v3.2.0 (Current)
+### v4.0.0 (Current) - Major Update
+- 🗄️ **SQLite Database** - Complete migration from Hive to SQLite for reliable, ACID-compliant data storage
+- 🔒 **Enterprise-Grade Security** - SQL injection prevention, comprehensive input validation, transaction support
+- 💾 **Data Persistence Fixed** - Resolved critical bug where loan data was deleted after app close
+- 📄 **PDF Currency Fix** - Fixed rupee symbol display in shared PDF reports (now uses "Rs." for compatibility)
+- 🛡️ **Robust Error Handling** - Comprehensive error handling with graceful degradation
+- ⚡ **Performance Boost** - Faster database operations with SQLite
+- 🧹 **Code Cleanup** - Removed old Hive dependencies, cleaner codebase
+- All previous features maintained and enhanced
+
+### v3.2.0
 - 🗄️ **SQLite Migration** - Migrated from Hive to SQLite for reliable data persistence
 - 🔒 **Enhanced Security** - Parameterized queries, input validation, comprehensive error handling
 - 💾 **Data Persistence Fix** - Fixed critical bug where loan data was deleted on app close

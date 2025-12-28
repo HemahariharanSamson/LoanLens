@@ -1,0 +1,34 @@
+feat: Migrate to SQLite and fix data persistence issues (v3.2.0)
+
+🐛 Critical Bug Fixes:
+- Fixed data persistence bug where loan details were deleted after app close
+- Fixed rupee symbol not displaying in PDF reports (now uses "Rs.")
+
+✨ Major Changes:
+- Migrated from Hive to SQLite (sqflite) for reliable data storage
+- Added comprehensive error handling and input validation
+- Implemented SQL injection prevention with parameterized queries
+- Added transaction support for atomic database operations
+
+🔒 Security Enhancements:
+- Parameterized queries prevent SQL injection
+- Input validation for all database operations
+- Safe data parsing with fallback values
+- Enhanced error handling throughout
+
+📄 Documentation:
+- Updated README.md with new version info
+- Added VERSION_3.2.0_SUMMARY.md
+- Added CHANGELOG.md
+- Added database security review documentation
+
+🗑️ Removed:
+- Hive storage implementation (hive_storage.dart, hive_adapter.dart)
+- Hive dependencies from pubspec.yaml
+
+📦 Dependencies:
+- Added: sqflite, sqflite_common_ffi, path
+- Removed: hive, hive_flutter
+
+This update ensures loan data is safe, secure, and persistent across app restarts.
+

@@ -8,13 +8,20 @@ import '../../core/utils/loan_calculator.dart';
 
 /// Service for generating PDF documents
 class PdfService {
-  // Use 'Rs.' instead of '₹' for better PDF compatibility
-  static final NumberFormat _currencyFormatter = NumberFormat.currency(
-    symbol: 'Rs. ',
-    decimalDigits: 0,
-  );
+  // Number formatter for Indian numbering system (lakhs, crores)
+  static final NumberFormat _numberFormatter = NumberFormat('#,##,###', 'en_IN');
   static final DateFormat _dateFormatter = DateFormat('dd MMM yyyy');
   static final DateFormat _monthYearFormatter = DateFormat('MMM yyyy');
+
+  /// Format currency with rupee symbol for PDF
+  /// Uses "Rs." prefix for reliable PDF compatibility across all viewers
+  static String formatCurrency(double amount) {
+    // Format number with Indian numbering system (lakhs, crores)
+    final formattedNumber = _numberFormatter.format(amount.round());
+    // Use "Rs." prefix - guaranteed to work in all PDF viewers
+    // The Unicode rupee symbol (₹) may not render correctly in all PDF viewers
+    return 'Rs. $formattedNumber';
+  }
 
   /// Generate PDF for loan details
   static Future<pw.Document> generateLoanDetailsPdf({
@@ -23,7 +30,6 @@ class PdfService {
     UserProfile? userProfile,
   }) async {
     final pdf = pw.Document();
-    final formatter = _currencyFormatter;
     final dateFormatter = _dateFormatter;
 
     // Generate repayment trend data
@@ -40,15 +46,15 @@ class PdfService {
             pw.SizedBox(height: 20),
 
             // Loan Information Section
-            _buildLoanInfoSection(loan, analytics, formatter, dateFormatter),
+            _buildLoanInfoSection(loan, analytics, dateFormatter),
             pw.SizedBox(height: 20),
 
             // Summary Cards
-            _buildSummarySection(analytics, formatter),
+            _buildSummarySection(analytics),
             pw.SizedBox(height: 20),
 
             // Repayment Trend Chart
-            _buildRepaymentTrendChart(trendData, formatter),
+            _buildRepaymentTrendChart(trendData),
             pw.SizedBox(height: 20),
 
             // Progress Section
@@ -106,7 +112,6 @@ class PdfService {
   static pw.Widget _buildLoanInfoSection(
     LoanModel loan,
     LoanAnalytics analytics,
-    NumberFormat formatter,
     DateFormat dateFormatter,
   ) {
     return pw.Container(
@@ -129,12 +134,12 @@ class PdfService {
           pw.SizedBox(height: 12),
           _buildInfoRow('Loan Name', loan.loanName),
           _buildInfoRow('Lender', loan.lenderName),
-          _buildInfoRow('Principal Amount', formatter.format(loan.principalAmount)),
+          _buildInfoRow('Principal Amount', formatCurrency(loan.principalAmount)),
           _buildInfoRow(
             'Interest Rate',
             '${loan.interestRate.toStringAsFixed(2)}% ${loan.interestType}',
           ),
-          _buildInfoRow('EMI Amount', formatter.format(loan.emiAmount)),
+          _buildInfoRow('EMI Amount', formatCurrency(loan.emiAmount)),
           _buildInfoRow('Start Date', dateFormatter.format(loan.startDate)),
           _buildInfoRow(
             'Tenure',
@@ -161,7 +166,7 @@ class PdfService {
             ),
             _buildInfoRow(
               'Amount Paid Before',
-              formatter.format(loan.amountPaidSoFar),
+              formatCurrency(loan.amountPaidSoFar),
             ),
           ],
           if (loan.isClosed) ...[
@@ -193,7 +198,7 @@ class PdfService {
                     ),
                   if (loan.closureAmount != null)
                     pw.Text(
-                      'Settlement: ${formatter.format(loan.closureAmount!)}',
+                      'Settlement: ${formatCurrency(loan.closureAmount!)}',
                       style: pw.TextStyle(
                         fontSize: 11,
                         color: PdfColors.green700,
@@ -211,14 +216,13 @@ class PdfService {
   /// Build summary section with key metrics
   static pw.Widget _buildSummarySection(
     LoanAnalytics analytics,
-    NumberFormat formatter,
   ) {
     return pw.Row(
       children: [
         pw.Expanded(
           child: _buildSummaryCard(
             'Total Payable',
-            formatter.format(analytics.totalPayable),
+            formatCurrency(analytics.totalPayable),
             PdfColors.blue700,
           ),
         ),
@@ -226,7 +230,7 @@ class PdfService {
         pw.Expanded(
           child: _buildSummaryCard(
             'Total Interest',
-            formatter.format(analytics.totalInterest),
+            formatCurrency(analytics.totalInterest),
             PdfColors.orange700,
           ),
         ),
@@ -271,7 +275,6 @@ class PdfService {
   /// Build repayment trend chart (as table for PDF compatibility)
   static pw.Widget _buildRepaymentTrendChart(
     List<MapEntry<String, double>> trendData,
-    NumberFormat formatter,
   ) {
     if (trendData.isEmpty) {
       return pw.Container();
@@ -339,7 +342,7 @@ class PdfService {
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
                       child: pw.Text(
-                        formatter.format(entry.value),
+                        formatCurrency(entry.value),
                         style: const pw.TextStyle(fontSize: 10),
                         textAlign: pw.TextAlign.right,
                       ),
@@ -416,14 +419,14 @@ class PdfService {
               pw.Expanded(
                 child: _buildProgressMetric(
                   'Amount Paid',
-                  _currencyFormatter.format(analytics.amountPaid),
+                  formatCurrency(analytics.amountPaid),
                 ),
               ),
               pw.SizedBox(width: 12),
               pw.Expanded(
                 child: _buildProgressMetric(
                   'Remaining',
-                  _currencyFormatter.format(analytics.remainingBalance),
+                  formatCurrency(analytics.remainingBalance),
                 ),
               ),
             ],
@@ -491,7 +494,6 @@ class PdfService {
     UserProfile? userProfile,
   }) async {
     final pdf = pw.Document();
-    final formatter = _currencyFormatter;
     final dateFormatter = _dateFormatter;
 
     // Calculate summary data
@@ -531,12 +533,11 @@ class PdfService {
               totalPaid,
               ongoingLoans.length,
               loans.length - ongoingLoans.length,
-              formatter,
             ),
             pw.SizedBox(height: 20),
 
             // All Loans Details
-            ..._buildAllLoansDetails(loans, formatter, dateFormatter),
+            ..._buildAllLoansDetails(loans, dateFormatter),
           ];
         },
       ),
@@ -598,7 +599,6 @@ class PdfService {
     double totalPaid,
     int ongoingCount,
     int closedCount,
-    NumberFormat formatter,
   ) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(16),
@@ -623,7 +623,7 @@ class PdfService {
               pw.Expanded(
                 child: _buildSummaryCard(
                   'Total Outstanding',
-                  formatter.format(totalOutstanding),
+                  formatCurrency(totalOutstanding),
                   PdfColors.red700,
                 ),
               ),
@@ -631,7 +631,7 @@ class PdfService {
               pw.Expanded(
                 child: _buildSummaryCard(
                   'Monthly EMI',
-                  formatter.format(totalMonthlyEMI),
+                  formatCurrency(totalMonthlyEMI),
                   PdfColors.blue700,
                 ),
               ),
@@ -643,7 +643,7 @@ class PdfService {
               pw.Expanded(
                 child: _buildSummaryCard(
                   'Total Interest',
-                  formatter.format(totalInterestPayable),
+                  formatCurrency(totalInterestPayable),
                   PdfColors.orange700,
                 ),
               ),
@@ -651,7 +651,7 @@ class PdfService {
               pw.Expanded(
                 child: _buildSummaryCard(
                   'Total Paid',
-                  formatter.format(totalPaid),
+                  formatCurrency(totalPaid),
                   PdfColors.green700,
                 ),
               ),
@@ -673,7 +673,6 @@ class PdfService {
   /// Build details for all loans
   static List<pw.Widget> _buildAllLoansDetails(
     List<LoanModel> loans,
-    NumberFormat formatter,
     DateFormat dateFormatter,
   ) {
     final widgets = <pw.Widget>[];
@@ -714,12 +713,12 @@ class PdfService {
                 ),
               ),
               pw.Divider(height: 16),
-              _buildInfoRow('Principal Amount', formatter.format(loan.principalAmount)),
+              _buildInfoRow('Principal Amount', formatCurrency(loan.principalAmount)),
               _buildInfoRow(
                 'Interest Rate',
                 '${loan.interestRate.toStringAsFixed(2)}% ${loan.interestType}',
               ),
-              _buildInfoRow('EMI Amount', formatter.format(loan.emiAmount)),
+              _buildInfoRow('EMI Amount', formatCurrency(loan.emiAmount)),
               _buildInfoRow('Start Date', dateFormatter.format(loan.startDate)),
               _buildInfoRow(
                 'Tenure',
