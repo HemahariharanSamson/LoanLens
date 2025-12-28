@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/loan_repository.dart';
 import '../../data/local/hive_storage.dart';
 import '../../data/models/loan_model.dart';
+import '../../data/models/user_profile.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/loan_card.dart';
 import '../../core/services/notification_service.dart';
 import '../../routes/app_routes.dart';
+import '../onboarding/onboarding_dialog.dart';
 
 /// Provider for loan repository
 final loanRepositoryProvider = Provider<LoanRepository>((ref) {
@@ -29,19 +31,102 @@ final loansProvider = FutureProvider.autoDispose<List<LoanModel>>((ref) async {
   return await repository.getAllLoans();
 });
 
+/// Provider for user profile (with caching)
+final userProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref) async {
+  final storage = HiveStorage();
+  // Keep alive for 30 seconds to avoid unnecessary reloads
+  ref.keepAlive();
+  return await storage.getUserProfile();
+});
+
 /// Dashboard screen showing loan overview
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _hasCheckedProfile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check profile after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndPromptForName();
+    });
+  }
+
+  Future<void> _checkAndPromptForName() async {
+    if (_hasCheckedProfile || !mounted) return;
+    
+    // Wait a bit for the profile to load
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    if (!mounted) return;
+    _hasCheckedProfile = true;
+    
+    try {
+      final storage = HiveStorage();
+      final profile = await storage.getUserProfile();
+      
+      // If no name is set, show the dialog
+      if ((profile == null || !profile.hasName) && mounted) {
+        _showNameDialog();
+      }
+    } catch (e) {
+      debugPrint('Error checking profile: $e');
+    }
+  }
+
+  Future<void> _showNameDialog() async {
+    // Get current profile to pre-fill name if available
+    String? currentName;
+    try {
+      final storage = HiveStorage();
+      final profile = await storage.getUserProfile();
+      currentName = profile?.name;
+    } catch (e) {
+      debugPrint('Error getting profile: $e');
+    }
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => OnboardingDialog(
+        initialName: currentName,
+        isUpdate: currentName != null && currentName!.isNotEmpty,
+      ),
+    );
+
+    // Refresh profile after dialog closes
+    if (mounted) {
+      ref.invalidate(userProfileProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final loansAsync = ref.watch(loansProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('LoanLens'),
         actions: [
+          // Profile icon to update name
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {
+              _showNameDialog();
+            },
+            tooltip: 'Update Profile',
+          ),
           IconButton(
             icon: const Icon(Icons.analytics_outlined),
             onPressed: () {
@@ -55,9 +140,51 @@ class DashboardScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(dashboardSummaryProvider);
           ref.invalidate(loansProvider);
+          ref.invalidate(userProfileProvider);
         },
         child: CustomScrollView(
           slivers: [
+            // Personalized Greeting
+            SliverToBoxAdapter(
+              child: userProfileAsync.when(
+                data: (profile) {
+                  final greeting = profile?.hasName == true
+                      ? 'Hello, ${profile!.displayName}'
+                      : 'Hello there';
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                    child: InkWell(
+                      onTap: () => _showNameDialog(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                greeting,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ),
+            
             // Summary Cards
             SliverToBoxAdapter(
               child: summaryAsync.when(

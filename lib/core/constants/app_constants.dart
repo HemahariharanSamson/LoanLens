@@ -3,6 +3,7 @@ class AppConstants {
   // Storage Keys
   static const String loansBoxName = 'loans_box';
   static const String settingsBoxName = 'settings_box';
+  static const String userProfileBoxName = 'user_profile_box';
   
   // Notification IDs
   static const int emiReminderNotificationId = 1000;

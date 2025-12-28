@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import '../models/loan_model.dart';
+import '../models/user_profile.dart';
 
 /// Hive TypeAdapter for LoanModel
 class LoanModelAdapter extends TypeAdapter<LoanModel> {
@@ -62,6 +63,28 @@ class LoanModelAdapter extends TypeAdapter<LoanModel> {
     }
     writer.writeString(obj.createdAt.toIso8601String());
     writer.writeString(obj.updatedAt.toIso8601String());
+  }
+}
+
+/// Hive TypeAdapter for UserProfile
+class UserProfileAdapter extends TypeAdapter<UserProfile> {
+  @override
+  final int typeId = 1;
+
+  @override
+  UserProfile read(BinaryReader reader) {
+    final hasName = reader.readBool();
+    return UserProfile(
+      name: hasName ? reader.readString() : null,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, UserProfile obj) {
+    writer.writeBool(obj.name != null && obj.name!.isNotEmpty);
+    if (obj.name != null && obj.name!.isNotEmpty) {
+      writer.writeString(obj.name!);
+    }
   }
 }
 

@@ -3,12 +3,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import '../models/loan_model.dart';
+import '../models/user_profile.dart';
 import '../../core/constants/app_constants.dart';
 import 'hive_adapter.dart';
 
 /// Hive storage service for offline data persistence
 class HiveStorage {
   static Box<LoanModel>? _loansBox;
+  static Box<UserProfile>? _userProfileBox;
 
   /// Initialize Hive storage with error handling and corruption recovery
   static Future<void> init() async {
@@ -20,15 +22,20 @@ class HiveStorage {
       if (!Hive.isAdapterRegistered(0)) {
         Hive.registerAdapter(LoanModelAdapter());
       }
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(UserProfileAdapter());
+      }
       
-      // Try to open box
+      // Try to open boxes
       try {
         _loansBox = await Hive.openBox<LoanModel>(AppConstants.loansBoxName);
+        _userProfileBox = await Hive.openBox<UserProfile>(AppConstants.userProfileBoxName);
       } on RangeError {
         // Corrupted data detected - delete and recreate
-        debugPrint('HiveStorage: Corrupted data detected (RangeError). Clearing and recreating box...');
+        debugPrint('HiveStorage: Corrupted data detected (RangeError). Clearing and recreating boxes...');
         await _recoverFromCorruption();
         _loansBox = await Hive.openBox<LoanModel>(AppConstants.loansBoxName);
+        _userProfileBox = await Hive.openBox<UserProfile>(AppConstants.userProfileBoxName);
       }
     } catch (e) {
       // Log error but don't throw - allow app to continue
@@ -40,7 +47,11 @@ class HiveStorage {
         if (!Hive.isAdapterRegistered(0)) {
           Hive.registerAdapter(LoanModelAdapter());
         }
+        if (!Hive.isAdapterRegistered(1)) {
+          Hive.registerAdapter(UserProfileAdapter());
+        }
         _loansBox = await Hive.openBox<LoanModel>(AppConstants.loansBoxName);
+        _userProfileBox = await Hive.openBox<UserProfile>(AppConstants.userProfileBoxName);
       } catch (e2) {
         debugPrint('HiveStorage.init recovery failed: $e2');
         // If still fails, try to create a fresh box
@@ -50,10 +61,12 @@ class HiveStorage {
             await _loansBox!.close();
             _loansBox = null;
           }
-          // Delete the box file
+          // Delete the box files
           await _deleteBoxFile(AppConstants.loansBoxName);
-          // Create fresh box
+          await _deleteBoxFile(AppConstants.userProfileBoxName);
+          // Create fresh boxes
           _loansBox = await Hive.openBox<LoanModel>(AppConstants.loansBoxName);
+          _userProfileBox = await Hive.openBox<UserProfile>(AppConstants.userProfileBoxName);
         } catch (e3) {
           debugPrint('HiveStorage.init final recovery failed: $e3');
           // If still fails, app will handle null box gracefully
@@ -192,6 +205,48 @@ class HiveStorage {
       debugPrint('HiveStorage.clearAll error: $e');
       rethrow;
     }
+  }
+
+  // User Profile Methods
+
+  /// Get user profile box
+  Box<UserProfile>? get userProfileBox => _userProfileBox;
+
+  /// Get user profile
+  Future<UserProfile?> getUserProfile() async {
+    final box = userProfileBox;
+    if (box == null) {
+      debugPrint('HiveStorage: User profile box not initialized, returning null');
+      return null;
+    }
+    try {
+      // Use a default key for user profile
+      return box.get('profile');
+    } catch (e) {
+      debugPrint('HiveStorage.getUserProfile error: $e');
+      return null;
+    }
+  }
+
+  /// Save user profile
+  Future<void> saveUserProfile(UserProfile profile) async {
+    final box = userProfileBox;
+    if (box == null) {
+      debugPrint('HiveStorage: User profile box not initialized, cannot save');
+      return;
+    }
+    try {
+      await box.put('profile', profile);
+    } catch (e) {
+      debugPrint('HiveStorage.saveUserProfile error: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if user has completed onboarding
+  Future<bool> hasCompletedOnboarding() async {
+    final profile = await getUserProfile();
+    return profile != null;
   }
 }
 

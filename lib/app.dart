@@ -5,6 +5,7 @@ import 'features/dashboard/dashboard_screen.dart';
 import 'features/loans/add_edit_loan_screen.dart';
 import 'features/loans/loan_details_screen.dart';
 import 'features/analytics/analytics_screen.dart';
+import 'features/onboarding/onboarding_wrapper.dart';
 import 'data/models/loan_model.dart';
 
 /// Main application widget
@@ -20,8 +21,10 @@ class LoanLensApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       // Performance optimizations
       builder: (context, child) {
-        // Return child directly - MaterialApp handles performance optimizations
-        return child!;
+        // Wrap with onboarding wrapper to check for first launch
+        return OnboardingWrapper(
+          child: child!,
+        );
       },
       initialRoute: AppRoutes.dashboard,
       routes: {
