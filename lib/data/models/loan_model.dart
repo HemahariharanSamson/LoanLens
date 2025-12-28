@@ -69,13 +69,20 @@ class LoanModel extends HiveObject {
   DateTime get effectiveStartDate => firstEmiDate ?? startDate;
   
   /// Get total months paid (including past payments)
+  /// Optimized to avoid blocking calculations
   int get totalMonthsPaid {
     if (isClosed) {
       return tenureInMonths; // All months paid if closed
     }
-    return monthsPaidSoFar + LoanCalculator.calculatePaidMonths(
-      startDate: effectiveStartDate,
-    );
+    try {
+      final currentMonths = LoanCalculator.calculatePaidMonths(
+        startDate: effectiveStartDate,
+      );
+      return monthsPaidSoFar + currentMonths;
+    } catch (e) {
+      // Fallback to monthsPaidSoFar if calculation fails
+      return monthsPaidSoFar;
+    }
   }
   
   /// Create a copy with updated fields

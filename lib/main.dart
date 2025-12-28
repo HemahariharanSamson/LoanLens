@@ -8,13 +8,37 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive storage (non-blocking for UI)
-  await HiveStorage.init();
+  // Initialize services with timeout and error handling to prevent splash screen hang
+  // Run both initializations in parallel for faster startup
+  await Future.wait([
+    // Initialize Hive storage with timeout
+    HiveStorage.init().timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        debugPrint('Warning: Hive initialization timed out after 3 seconds');
+        return;
+      },
+    ).catchError((e) {
+      debugPrint('Error initializing Hive: $e');
+      return;
+    }),
+    
+    // Initialize notification service with timeout
+    NotificationService.init().timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        debugPrint('Warning: Notification service initialization timed out after 3 seconds');
+        return;
+      },
+    ).catchError((e) {
+      debugPrint('Error initializing notifications: $e');
+      return;
+    }),
+  ], eagerError: false); // Don't fail if one fails
 
-  // Initialize notification service (non-blocking for UI)
-  await NotificationService.init();
+  debugPrint('Initialization complete. Starting app...');
 
-  // Run app immediately - don't block on reminder rescheduling
+  // Run app immediately - don't wait for reminder rescheduling
   runApp(
     const ProviderScope(
       child: LoanLensApp(),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -9,35 +10,43 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
-  /// Initialize notification service
+  /// Initialize notification service with error handling
   static Future<void> init() async {
-    // Initialize timezone
-    tz.initializeTimeZones();
-    
-    // Android initialization settings
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    
-    // iOS initialization settings
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    
-    // Initialization settings
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-    
-    // Initialize plugin
-    await _notifications.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
-    );
-    
-    // Request permissions for Android 13+
-    await _requestPermissions();
+    try {
+      // Initialize timezone (synchronous, fast)
+      tz.initializeTimeZones();
+      
+      // Android initialization settings
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      
+      // iOS initialization settings
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      
+      // Initialization settings
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+      
+      // Initialize plugin with error handling
+      await _notifications.initialize(
+        initSettings,
+        onDidReceiveNotificationResponse: _onNotificationTapped,
+      );
+      
+      // Request permissions for Android 13+ (non-blocking)
+      _requestPermissions().catchError((e) {
+        debugPrint('Error requesting notification permissions: $e');
+      });
+    } catch (e) {
+      // Log error but don't throw - allow app to continue without notifications
+      debugPrint('NotificationService.init error: $e');
+      // App can still function without notifications
+    }
   }
 
   /// Request notification permissions

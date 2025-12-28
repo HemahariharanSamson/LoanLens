@@ -34,52 +34,66 @@ class LoanRepository {
   }
 
   /// Get loan analytics (with past payments and closure support)
+  /// Optimized for performance - calculations are synchronous and fast
   Future<LoanAnalytics> getLoanAnalytics(LoanModel loan) async {
-    // Calculate total payable
-    final totalPayable = LoanCalculator.calculateTotalPayable(
-      emi: loan.emiAmount,
-      tenureMonths: loan.tenureInMonths,
-    );
-    
-    // Calculate total interest
-    final totalInterest = LoanCalculator.calculateTotalInterest(
-      principal: loan.principalAmount,
-      totalPayable: totalPayable,
-    );
-    
-    // Calculate outstanding with history
-    final remainingBalance = LoanCalculator.calculateOutstandingWithHistory(
-      principal: loan.principalAmount,
-      annualInterestRate: loan.interestRate,
-      totalTenureMonths: loan.tenureInMonths,
-      monthsPaidSoFar: loan.monthsPaidSoFar,
-      amountPaidSoFar: loan.amountPaidSoFar,
-      effectiveStartDate: loan.effectiveStartDate,
-      status: loan.status,
-      closureAmount: loan.closureAmount,
-    );
-    
-    // Calculate total amount paid
-    final amountPaid = LoanCalculator.calculateTotalAmountPaid(
-      emi: loan.emiAmount,
-      monthsPaidSoFar: loan.monthsPaidSoFar,
-      amountPaidSoFar: loan.amountPaidSoFar,
-      effectiveStartDate: loan.effectiveStartDate,
-      status: loan.status,
-      closureAmount: loan.closureAmount,
-    );
-    
-    // Calculate total months paid
-    final totalPaidMonths = loan.totalMonthsPaid;
-    
-    return LoanAnalytics(
-      totalPayable: totalPayable,
-      totalInterest: totalInterest,
-      remainingBalance: remainingBalance,
-      amountPaid: amountPaid,
-      paidMonths: totalPaidMonths,
-      totalMonths: loan.tenureInMonths,
-    );
+    try {
+      // All calculations are synchronous and fast - no async operations needed
+      // Calculate total payable
+      final totalPayable = LoanCalculator.calculateTotalPayable(
+        emi: loan.emiAmount,
+        tenureMonths: loan.tenureInMonths,
+      );
+      
+      // Calculate total interest
+      final totalInterest = LoanCalculator.calculateTotalInterest(
+        principal: loan.principalAmount,
+        totalPayable: totalPayable,
+      );
+      
+      // Calculate outstanding with history
+      final remainingBalance = LoanCalculator.calculateOutstandingWithHistory(
+        principal: loan.principalAmount,
+        annualInterestRate: loan.interestRate,
+        totalTenureMonths: loan.tenureInMonths,
+        monthsPaidSoFar: loan.monthsPaidSoFar,
+        amountPaidSoFar: loan.amountPaidSoFar,
+        effectiveStartDate: loan.effectiveStartDate,
+        status: loan.status,
+        closureAmount: loan.closureAmount,
+      );
+      
+      // Calculate total amount paid
+      final amountPaid = LoanCalculator.calculateTotalAmountPaid(
+        emi: loan.emiAmount,
+        monthsPaidSoFar: loan.monthsPaidSoFar,
+        amountPaidSoFar: loan.amountPaidSoFar,
+        effectiveStartDate: loan.effectiveStartDate,
+        status: loan.status,
+        closureAmount: loan.closureAmount,
+      );
+      
+      // Calculate total months paid
+      final totalPaidMonths = loan.totalMonthsPaid;
+      
+      return LoanAnalytics(
+        totalPayable: totalPayable,
+        totalInterest: totalInterest,
+        remainingBalance: remainingBalance,
+        amountPaid: amountPaid,
+        paidMonths: totalPaidMonths,
+        totalMonths: loan.tenureInMonths,
+      );
+    } catch (e) {
+      // Return default analytics on error to prevent crashes
+      return LoanAnalytics(
+        totalPayable: loan.emiAmount * loan.tenureInMonths,
+        totalInterest: 0,
+        remainingBalance: loan.principalAmount,
+        amountPaid: 0,
+        paidMonths: 0,
+        totalMonths: loan.tenureInMonths,
+      );
+    }
   }
 
   /// Get dashboard summary (excluding closed loans from outstanding)

@@ -7,6 +7,30 @@ import '../../core/services/notification_service.dart';
 import '../../routes/app_routes.dart';
 import '../dashboard/dashboard_screen.dart';
 
+/// Provider for individual loan by ID (with stable key)
+final loanByIdProvider = FutureProvider.autoDispose.family<LoanModel?, String>(
+  (ref, loanId) async {
+    final repository = ref.read(loanRepositoryProvider);
+    return await repository.getLoanById(loanId);
+  },
+);
+
+/// Provider for loan analytics (with stable key and caching)
+/// Uses loanId as key for proper caching
+final loanAnalyticsProvider = FutureProvider.autoDispose.family<LoanAnalytics, String>(
+  (ref, loanId) async {
+    final repository = ref.read(loanRepositoryProvider);
+    // First get the loan
+    final loan = await repository.getLoanById(loanId);
+    if (loan == null) {
+      throw Exception('Loan not found');
+    }
+    // Keep alive to cache analytics during screen lifetime
+    ref.keepAlive();
+    return await repository.getLoanAnalytics(loan);
+  },
+);
+
 /// Screen showing detailed information about a loan
 class LoanDetailsScreen extends ConsumerWidget {
   final String loanId;
@@ -15,56 +39,85 @@ class LoanDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final repository = ref.read(loanRepositoryProvider);
-    
-    // Use a stable provider key to avoid recreating providers on rebuild
-    final loanProvider = FutureProvider.autoDispose<LoanModel?>(
-      (ref) => repository.getLoanById(loanId),
-    );
-    
-    final loanAsync = ref.watch(loanProvider);
+    // Use family provider with stable key - won't recreate on rebuild
+    final loanAsync = ref.watch(loanByIdProvider(loanId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Loan Details'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              loanAsync.whenData((loan) {
-                if (loan != null) {
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.editLoan,
-                    arguments: loan,
-                  );
-                }
-              });
-            },
-          ),
-        ],
-      ),
-      body: loanAsync.when(
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Loan Details'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                loanAsync.whenData((loan) {
+                  if (loan != null && context.mounted) {
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.editLoan,
+                      arguments: loan,
+                    );
+                  }
+                });
+              },
+            ),
+          ],
+        ),
+        body: loanAsync.when(
         data: (loan) {
           if (loan == null) {
             return const Center(child: Text('Loan not found'));
           }
 
-          // Use a stable provider key for analytics to avoid unnecessary recalculations
-          final analyticsProvider = FutureProvider.autoDispose<LoanAnalytics>(
-            (ref) => repository.getLoanAnalytics(loan),
-          );
-          
-          final analyticsAsync = ref.watch(analyticsProvider);
+          // Use family provider with stable key (loanId) - won't recreate on rebuild
+          final analyticsAsync = ref.watch(loanAnalyticsProvider(loanId));
 
           return analyticsAsync.when(
             data: (analytics) => _buildContent(context, ref, loan, analytics),
             loading: () => _buildLoadingState(context, loan),
-            error: (error, stack) => Center(child: Text('Error: $error')),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text('Error loading analytics: $error'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Retry by invalidating the provider
+                      ref.invalidate(loanAnalyticsProvider(loanId));
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error loading loan: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Retry by invalidating the provider
+                  ref.invalidate(loanByIdProvider(loanId));
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        ),
       ),
     );
   }
