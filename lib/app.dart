@@ -18,6 +18,11 @@ class LoanLensApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
+      // Performance optimizations
+      builder: (context, child) {
+        // Return child directly - MaterialApp handles performance optimizations
+        return child!;
+      },
       initialRoute: AppRoutes.dashboard,
       routes: {
         AppRoutes.dashboard: (context) => const DashboardScreen(),

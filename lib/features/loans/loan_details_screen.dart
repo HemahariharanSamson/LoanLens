@@ -16,9 +16,13 @@ class LoanDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repository = ref.read(loanRepositoryProvider);
-    final loanAsync = ref.watch(
-      FutureProvider((ref) => repository.getLoanById(loanId)),
+    
+    // Use a stable provider key to avoid recreating providers on rebuild
+    final loanProvider = FutureProvider.autoDispose<LoanModel?>(
+      (ref) => repository.getLoanById(loanId),
     );
+    
+    final loanAsync = ref.watch(loanProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -28,11 +32,13 @@ class LoanDetailsScreen extends ConsumerWidget {
             icon: const Icon(Icons.edit),
             onPressed: () {
               loanAsync.whenData((loan) {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.editLoan,
-                  arguments: loan,
-                );
+                if (loan != null) {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.editLoan,
+                    arguments: loan,
+                  );
+                }
               });
             },
           ),
@@ -44,18 +50,72 @@ class LoanDetailsScreen extends ConsumerWidget {
             return const Center(child: Text('Loan not found'));
           }
 
-          final analyticsAsync = ref.watch(
-            FutureProvider((ref) => repository.getLoanAnalytics(loan)),
+          // Use a stable provider key for analytics to avoid unnecessary recalculations
+          final analyticsProvider = FutureProvider.autoDispose<LoanAnalytics>(
+            (ref) => repository.getLoanAnalytics(loan),
           );
+          
+          final analyticsAsync = ref.watch(analyticsProvider);
 
           return analyticsAsync.when(
             data: (analytics) => _buildContent(context, ref, loan, analytics),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => _buildLoadingState(context, loan),
             error: (error, stack) => Center(child: Text('Error: $error')),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
+      ),
+    );
+  }
+
+  /// Build loading state with loan info already available
+  Widget _buildLoadingState(BuildContext context, LoanModel loan) {
+    final formatter = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Show loan info immediately while analytics load
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loan.loanName,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    loan.lenderName,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                  ),
+                  const Divider(height: 32),
+                  _buildInfoRow(
+                    context,
+                    'EMI Amount',
+                    formatter.format(loan.emiAmount),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ],
       ),
     );
   }

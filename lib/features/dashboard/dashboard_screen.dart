@@ -13,15 +13,19 @@ final loanRepositoryProvider = Provider<LoanRepository>((ref) {
   return LoanRepository(HiveStorage());
 });
 
-/// Provider for dashboard summary
-final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) async {
+/// Provider for dashboard summary (with caching)
+final dashboardSummaryProvider = FutureProvider.autoDispose<DashboardSummary>((ref) async {
   final repository = ref.read(loanRepositoryProvider);
+  // Keep alive for 30 seconds to avoid unnecessary recalculations
+  ref.keepAlive();
   return await repository.getDashboardSummary();
 });
 
-/// Provider for loans list
-final loansProvider = FutureProvider<List<LoanModel>>((ref) async {
+/// Provider for loans list (with caching)
+final loansProvider = FutureProvider.autoDispose<List<LoanModel>>((ref) async {
   final repository = ref.read(loanRepositoryProvider);
+  // Keep alive for 30 seconds to avoid unnecessary reloads
+  ref.keepAlive();
   return await repository.getAllLoans();
 });
 

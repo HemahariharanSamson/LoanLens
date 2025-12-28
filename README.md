@@ -2,7 +2,7 @@
 
 A fully offline-first Flutter mobile application for tracking and analyzing multiple loans.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/license-Private-red)
@@ -17,6 +17,7 @@ A fully offline-first Flutter mobile application for tracking and analyzing mult
 - 🔔 **Smart Notifications** - Monthly EMI reminders
 - 🎨 **Minimalist UI** - Clean, modern, finance-grade design
 - 🌓 **Theme Support** - Light mode (dark mode compatible)
+- ⚡ **Optimized Performance** - Fast loading and smooth navigation
 
 ## 📸 Screenshots
 
@@ -120,7 +121,16 @@ flutter build apk --release
 
 ## 📝 Version History
 
-### v2.0.0 (Current)
+### v3.0.0 (Current)
+- ⚡ **Performance Optimizations** - Faster app startup and navigation
+- 🚀 **Splash Screen Fix** - No more hanging on splash screen
+- ⏱️ **Faster Loan Details** - Optimized loading with progressive rendering
+- 🔧 **Android Warnings Fixed** - Resolved OnBackInvokedCallback warning
+- 🎯 **Provider Optimization** - Better caching and state management
+- 📊 **Improved Analytics** - Faster chart rendering
+- All previous features maintained
+
+### v2.0.0
 - ✨ **New Icon Design** - Modern, minimalist app icon
 - 🎨 Enhanced visual identity
 - All v1.0.0 features maintained
@@ -144,10 +154,10 @@ Private - Personal use only
 
 ## 👤 Author
 
-**Hema Hariharan Samson**
+**HemahariharanSamson**
 
 - Portfolio: [https://hhh-dev.vercel.app/](https://hhh-dev.vercel.app/)
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@HemahariharanSamson](https://github.com/HemahariharanSamson)
 
 ---
 

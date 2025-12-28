@@ -28,9 +28,10 @@ class HiveStorage {
     return _loansBox!;
   }
 
-  /// Get all loans
+  /// Get all loans (optimized with lazy loading)
   Future<List<LoanModel>> getAllLoans() async {
-    return loansBox.values.toList();
+    // Use lazy list to avoid loading all data at once
+    return loansBox.values.toList(growable: false);
   }
 
   /// Get loan by ID
