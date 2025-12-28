@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/local/hive_storage.dart';
+import '../../data/local/sqlite_storage.dart';
 import 'onboarding_dialog.dart';
 
 /// Wrapper widget that shows onboarding dialog on first launch
@@ -33,7 +33,7 @@ class _OnboardingWrapperState extends ConsumerState<OnboardingWrapper> {
     _hasCheckedOnboarding = true;
 
     try {
-      final storage = HiveStorage();
+      final storage = SqliteStorage();
       final profile = await storage.getUserProfile();
       
       // Show dialog if onboarding not completed OR if no name is set

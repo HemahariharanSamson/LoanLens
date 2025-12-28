@@ -61,6 +61,7 @@ class LoanDetailsScreen extends ConsumerWidget {
                   }
                 });
               },
+              tooltip: 'Edit Loan',
             ),
           ],
         ),
@@ -586,5 +587,6 @@ class LoanDetailsScreen extends ConsumerWidget {
       ),
     );
   }
+
 }
 

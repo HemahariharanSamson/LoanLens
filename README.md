@@ -2,7 +2,7 @@
 
 A fully offline-first Flutter mobile application for tracking and analyzing multiple loans.
 
-![Version](https://img.shields.io/badge/version-3.1.0-blue)
+![Version](https://img.shields.io/badge/version-3.2.0-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/license-Private-red)
@@ -58,7 +58,7 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 ## 🏗️ Architecture
 
 - **State Management**: Riverpod
-- **Local Storage**: Hive
+- **Local Storage**: SQLite (sqflite) - Reliable and fast
 - **Charts**: fl_chart
 - **Notifications**: flutter_local_notifications
 - **Architecture**: Clean Architecture with feature-based structure
@@ -67,11 +67,12 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 Key packages:
 - `flutter_riverpod` - State management
-- `hive` & `hive_flutter` - Offline storage
+- `sqflite` - SQLite database for reliable offline storage
 - `fl_chart` - Charts and visualizations
 - `flutter_local_notifications` - Local notifications
 - `intl` - Internationalization
 - `uuid` - Unique ID generation
+- `pdf` & `printing` - PDF generation and sharing
 
 See `pubspec.yaml` for complete list.
 
@@ -122,12 +123,22 @@ flutter build apk --release
 
 ## 📝 Version History
 
-### v3.1.0 (Current)
+### v3.2.0 (Current)
+- 🗄️ **SQLite Migration** - Migrated from Hive to SQLite for reliable data persistence
+- 🔒 **Enhanced Security** - Parameterized queries, input validation, comprehensive error handling
+- 💾 **Data Persistence Fix** - Fixed critical bug where loan data was deleted on app close
+- 📄 **PDF Improvements** - Fixed rupee symbol display in PDF reports (now uses "Rs.")
+- 🛡️ **Database Security** - Added transaction support, safe data parsing, and error recovery
+- ✨ **Performance** - Faster database operations with SQLite
+- All previous features maintained
+
+### v3.1.0
 - 👤 **Personalization Feature** - Set and update your name for personalized greetings
 - 🎯 **Smart Onboarding** - Optional name collection on first launch
 - 🔄 **Mid-Session Updates** - Update your name anytime via profile icon or greeting
-- 💾 **Local Profile Storage** - User profile stored securely offline using Hive
+- 💾 **Local Profile Storage** - User profile stored securely offline
 - ✨ **Enhanced UX** - Clickable greeting and profile icon for easy access
+- 📄 **PDF Sharing** - Share all loans as comprehensive PDF report
 - All previous features maintained
 
 ### v3.0.0

@@ -1,7 +1,5 @@
-import 'package:hive/hive.dart';
-
 /// User profile model for personalization
-class UserProfile extends HiveObject {
+class UserProfile {
   String? name;
 
   UserProfile({

@@ -1,9 +1,8 @@
-import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/utils/loan_calculator.dart';
 
 /// Loan data model
-class LoanModel extends HiveObject {
+class LoanModel {
   final String id;
   String loanName;
   String lenderName;

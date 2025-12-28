@@ -1,10 +1,10 @@
 import '../models/loan_model.dart';
-import '../local/hive_storage.dart';
+import '../local/sqlite_storage.dart';
 import '../../core/utils/loan_calculator.dart';
 
 /// Repository for loan data operations
 class LoanRepository {
-  final HiveStorage _storage;
+  final SqliteStorage _storage;
 
   LoanRepository(this._storage);
 

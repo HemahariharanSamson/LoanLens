@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/user_profile.dart';
-import '../../data/local/hive_storage.dart';
+import '../../data/local/sqlite_storage.dart';
 
 /// Onboarding dialog to collect user's name on first launch or update existing name
 class OnboardingDialog extends StatefulWidget {
@@ -39,7 +39,7 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
       final profile = UserProfile(name: name.isEmpty ? null : name);
       
       try {
-        final storage = HiveStorage();
+        final storage = SqliteStorage();
         await storage.saveUserProfile(profile);
         
         if (mounted) {
@@ -58,7 +58,7 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
   void _skip() {
     // Save empty profile to mark onboarding as completed
     final profile = UserProfile(name: null);
-    HiveStorage().saveUserProfile(profile).then((_) {
+    SqliteStorage().saveUserProfile(profile).then((_) {
       if (mounted) {
         Navigator.of(context).pop();
       }

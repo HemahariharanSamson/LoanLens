@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:printing/printing.dart';
 import '../../data/repositories/loan_repository.dart';
-import '../../data/local/hive_storage.dart';
+import '../../data/local/sqlite_storage.dart';
 import '../../data/models/loan_model.dart';
 import '../../data/models/user_profile.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/loan_card.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/pdf_service.dart';
 import '../../routes/app_routes.dart';
 import '../onboarding/onboarding_dialog.dart';
 
 /// Provider for loan repository
 final loanRepositoryProvider = Provider<LoanRepository>((ref) {
-  return LoanRepository(HiveStorage());
+  return LoanRepository(SqliteStorage());
 });
 
 /// Provider for dashboard summary (with caching)
@@ -33,7 +35,7 @@ final loansProvider = FutureProvider.autoDispose<List<LoanModel>>((ref) async {
 
 /// Provider for user profile (with caching)
 final userProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref) async {
-  final storage = HiveStorage();
+  final storage = SqliteStorage();
   // Keep alive for 30 seconds to avoid unnecessary reloads
   ref.keepAlive();
   return await storage.getUserProfile();
@@ -69,7 +71,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _hasCheckedProfile = true;
     
     try {
-      final storage = HiveStorage();
+      final storage = SqliteStorage();
       final profile = await storage.getUserProfile();
       
       // If no name is set, show the dialog
@@ -85,7 +87,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // Get current profile to pre-fill name if available
     String? currentName;
     try {
-      final storage = HiveStorage();
+      final storage = SqliteStorage();
       final profile = await storage.getUserProfile();
       currentName = profile?.name;
     } catch (e) {
@@ -99,7 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       barrierDismissible: true,
       builder: (context) => OnboardingDialog(
         initialName: currentName,
-        isUpdate: currentName != null && currentName!.isNotEmpty,
+        isUpdate: currentName != null && currentName.isNotEmpty,
       ),
     );
 
@@ -119,6 +121,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appBar: AppBar(
         title: const Text('LoanLens'),
         actions: [
+          // Share PDF button
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () => _shareAllLoansAsPdf(context, ref),
+            tooltip: 'Share All Loans as PDF',
+          ),
           // Profile icon to update name
           IconButton(
             icon: const Icon(Icons.person_outline),
@@ -148,8 +156,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             SliverToBoxAdapter(
               child: userProfileAsync.when(
                 data: (profile) {
-                  final greeting = profile?.hasName == true
-                      ? 'Hello, ${profile!.displayName}'
+                  final greeting = profile?.hasName == true && profile != null
+                      ? 'Hello, ${profile.displayName}'
                       : 'Hello there';
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -360,6 +368,81 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         label: const Text('Add Loan'),
       ),
     );
+  }
+
+  /// Share all loans as PDF
+  Future<void> _shareAllLoansAsPdf(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      // Show loading indicator
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      // Get all loans
+      final repository = ref.read(loanRepositoryProvider);
+      final loans = await repository.getAllLoans();
+
+      if (loans.isEmpty) {
+        // Close loading dialog
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No loans to share')),
+          );
+        }
+        return;
+      }
+
+      // Get user profile
+      final storage = SqliteStorage();
+      final userProfile = await storage.getUserProfile();
+
+      // Generate PDF
+      final pdf = await PdfService.generateAllLoansPdf(
+        loans: loans,
+        repository: repository,
+        userProfile: userProfile,
+      );
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      // Share PDF
+      if (context.mounted) {
+        await Printing.layoutPdf(
+          onLayout: (format) async => pdf.save(),
+          name: 'AllLoans_Report.pdf',
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      // Show error
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error generating PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showDeleteDialog(
